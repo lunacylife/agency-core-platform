@@ -1,0 +1,15 @@
+{
+    "clientName":  "Sample Contractor LLC",
+    "features":  {
+                     "employeePortal":  true,
+                     "stripeCheckout":  true,
+                     "estimator":  true
+                 },
+    "subdomain":  "samplecontractor",
+    "brandColor":  "#3b82f6",
+    "pricingFormula":  {
+                           "unitName":  "Square Feet",
+                           "perUnitRate":  45.5,
+                           "baseFee":  150
+                       }
+}
