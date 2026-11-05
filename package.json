@@ -1,0 +1,24 @@
+{
+    "version":  "1.0.0",
+    "name":  "agency-core-platform",
+    "scripts":  {
+                    "preview":  "vite preview",
+                    "build":  "vite build",
+                    "dev":  "vite"
+                },
+    "devDependencies":  {
+                            "postcss":  "^8.4.38",
+                            "vite":  "^5.1.6",
+                            "@types/react-dom":  "^18.2.22",
+                            "autoprefixer":  "^10.4.19",
+                            "@types/react":  "^18.2.66",
+                            "@vitejs/plugin-react":  "^4.2.1",
+                            "tailwindcss":  "^3.4.1"
+                        },
+    "type":  "module",
+    "dependencies":  {
+                         "react":  "^18.2.0",
+                         "react-dom":  "^18.2.0"
+                     },
+    "private":  true
+}
