@@ -5,7 +5,7 @@ export default function AgencyMasterDashboard() {
   const [isProvisioningOpen, setIsProvisioningOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
 
-  // Editable Client Fleet State
+  // Expanded Client Fleet State with Business Configurators & Employees
   const [clients, setClients] = useState([
     { 
       id: 1, 
@@ -17,9 +17,21 @@ export default function AgencyMasterDashboard() {
       leads: 42, 
       uptime: '99.99%', 
       badge: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-      baseRate: 1450,
-      emergencyMultiplier: 1.4,
-      modules: { portal: true, stripe: true, dispatch: true }
+      businessConfig: {
+        tradeType: 'HVAC & Electrical',
+        baseQuoteRate: 1500,
+        emergencyFee: 400,
+        taxRate: 7.0,
+        customServices: [
+          { id: 1, name: 'Heat Pump Diagnostics', price: 175 },
+          { id: 2, name: '220V Circuit Install', price: 350 },
+          { id: 3, name: 'Full Duct Cleaning', price: 600 }
+        ],
+        employees: [
+          { id: 1, name: 'Marcus Vance', role: 'Lead Electrician', phone: '(814) 555-0192', status: 'On Job' },
+          { id: 2, name: 'Dave Miller', role: 'HVAC Technician', phone: '(814) 555-4821', status: 'Available' }
+        ]
+      }
     },
     { 
       id: 2, 
@@ -31,9 +43,19 @@ export default function AgencyMasterDashboard() {
       leads: 18, 
       uptime: '100%', 
       badge: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-      baseRate: 2200,
-      emergencyMultiplier: 1.5,
-      modules: { portal: true, stripe: false, dispatch: true }
+      businessConfig: {
+        tradeType: 'Roofing & Siding',
+        baseQuoteRate: 2400,
+        emergencyFee: 750,
+        taxRate: 6.0,
+        customServices: [
+          { id: 1, name: 'Shingle Replacement (Sq)', price: 350 },
+          { id: 2, name: 'Gutter Guard Installation', price: 900 }
+        ],
+        employees: [
+          { id: 1, name: 'Tom Bradley', role: 'Crew Chief', phone: '(814) 555-7733', status: 'On Job' }
+        ]
+      }
     },
     { 
       id: 3, 
@@ -45,11 +67,31 @@ export default function AgencyMasterDashboard() {
       leads: 64, 
       uptime: '99.95%', 
       badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-      baseRate: 1750,
-      emergencyMultiplier: 1.3,
-      modules: { portal: true, stripe: true, dispatch: true }
+      businessConfig: {
+        tradeType: 'Plumbing & Drains',
+        baseQuoteRate: 1200,
+        emergencyFee: 350,
+        taxRate: 7.0,
+        customServices: [
+          { id: 1, name: 'Hydro Jetting', price: 450 },
+          { id: 2, name: 'Tankless Water Heater', price: 1800 }
+        ],
+        employees: [
+          { id: 1, name: 'Sarah Jenkins', role: 'Master Plumber', phone: '(814) 555-8822', status: 'Dispatched' },
+          { id: 2, name: 'Leo Gomez', role: 'Apprentice', phone: '(814) 555-9944', status: 'Available' }
+        ]
+      }
     }
   ]);
+
+  // New Service Item Input State for Selected Client
+  const [newServiceName, setNewServiceName] = useState('');
+  const [newServicePrice, setNewServicePrice] = useState('');
+
+  // New Employee Input State for Selected Client
+  const [newEmpName, setNewEmpName] = useState('');
+  const [newEmpRole, setNewEmpRole] = useState('');
+  const [newEmpPhone, setNewEmpPhone] = useState('');
 
   // New Tenant Form State
   const [newClientName, setNewClientName] = useState('');
@@ -57,23 +99,58 @@ export default function AgencyMasterDashboard() {
   const [provisionLogs, setProvisionLogs] = useState([]);
   const [isProvisioning, setIsProvisioning] = useState(false);
 
-  // Estimator Preview State
-  const [projectType, setProjectType] = useState('hvac');
-  const [urgency, setUrgency] = useState('standard');
-  const [addons, setAddons] = useState({ portal: true, stripe: true, dispatch: true });
-
-  const calculateEstimate = () => {
-    let base = projectType === 'hvac' ? 1450 : projectType === 'roofing' ? 2200 : 1750;
-    if (urgency === 'emergency') base *= 1.4;
-    if (addons.portal) base += 450;
-    if (addons.stripe) base += 300;
-    if (addons.dispatch) base += 600;
-    return base;
-  };
-
-  const handleUpdateClientConfig = (updatedClient) => {
+  const handleUpdateBusinessConfig = (updatedClient) => {
     setClients(prev => prev.map(c => c.id === updatedClient.id ? updatedClient : c));
     setSelectedClient(updatedClient);
+  };
+
+  const handleAddService = () => {
+    if (!newServiceName || !newServicePrice || !selectedClient) return;
+    const updatedServices = [
+      ...selectedClient.businessConfig.customServices,
+      { id: Date.now(), name: newServiceName, price: Number(newServicePrice) }
+    ];
+    const updatedClient = {
+      ...selectedClient,
+      businessConfig: { ...selectedClient.businessConfig, customServices: updatedServices }
+    };
+    handleUpdateBusinessConfig(updatedClient);
+    setNewServiceName('');
+    setNewServicePrice('');
+  };
+
+  const handleDeleteService = (serviceId) => {
+    const updatedServices = selectedClient.businessConfig.customServices.filter(s => s.id !== serviceId);
+    const updatedClient = {
+      ...selectedClient,
+      businessConfig: { ...selectedClient.businessConfig, customServices: updatedServices }
+    };
+    handleUpdateBusinessConfig(updatedClient);
+  };
+
+  const handleAddEmployee = () => {
+    if (!newEmpName || !selectedClient) return;
+    const updatedEmployees = [
+      ...selectedClient.businessConfig.employees,
+      { id: Date.now(), name: newEmpName, role: newEmpRole || 'Field Tech', phone: newEmpPhone || 'N/A', status: 'Available' }
+    ];
+    const updatedClient = {
+      ...selectedClient,
+      businessConfig: { ...selectedClient.businessConfig, employees: updatedEmployees }
+    };
+    handleUpdateBusinessConfig(updatedClient);
+    setNewEmpName('');
+    setNewEmpRole('');
+    setNewEmpPhone('');
+  };
+
+  const handleDeleteEmployee = (empId) => {
+    const updatedEmployees = selectedClient.businessConfig.employees.filter(e => e.id !== empId);
+    const updatedClient = {
+      ...selectedClient,
+      businessConfig: { ...selectedClient.businessConfig, employees: updatedEmployees }
+    };
+    handleUpdateBusinessConfig(updatedClient);
   };
 
   const handleProvisionTenant = (e) => {
@@ -103,9 +180,14 @@ export default function AgencyMasterDashboard() {
         leads: 0,
         uptime: '100%',
         badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-        baseRate: 1500,
-        emergencyMultiplier: 1.4,
-        modules: { portal: true, stripe: true, dispatch: true }
+        businessConfig: {
+          tradeType: 'General Contracting',
+          baseQuoteRate: 1500,
+          emergencyFee: 350,
+          taxRate: 6.5,
+          customServices: [{ id: 1, name: 'Initial Inspection & Quote', price: 150 }],
+          employees: [{ id: 1, name: 'Field Lead', role: 'Manager', phone: '(814) 555-0000', status: 'Available' }]
+        }
       };
       setClients(prev => [newTenant, ...prev]);
       setIsProvisioning(false);
@@ -136,7 +218,7 @@ export default function AgencyMasterDashboard() {
               onClick={() => setActiveTab('overview')} 
               className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 ${activeTab === 'overview' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 ring-1 ring-white/10' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'}`}
             >
-              <span>??</span> Tenant Fleet & Settings
+              <span>??</span> Tenant Fleet & Business Configs
             </button>
             <button 
               onClick={() => setActiveTab('estimator')} 
@@ -174,8 +256,8 @@ export default function AgencyMasterDashboard() {
             
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-3xl font-black tracking-tight text-white">Client Tenant Fleet & Configs</h2>
-                <p className="text-sm text-slate-400 mt-1">Manage pricing, feature toggles, zero-overlap database schemas, and Stripe subscriptions.</p>
+                <h2 className="text-3xl font-black tracking-tight text-white">Client Business Configurators & Fleet</h2>
+                <p className="text-sm text-slate-400 mt-1">Configure client estimation formulas, custom services, employee dispatch rosters, and billing tiers.</p>
               </div>
               <button 
                 onClick={() => setIsProvisioningOpen(true)}
@@ -232,122 +314,176 @@ export default function AgencyMasterDashboard() {
 
                   <div className="space-y-3 my-6 text-sm">
                     <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-                      <span className="text-slate-400">Estimator Base Rate:</span>
-                      <span className="font-bold text-emerald-400">${client.baseRate}</span>
+                      <span className="text-slate-400">Trade Specialty:</span>
+                      <span className="font-semibold text-white">{client.businessConfig.tradeType}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-                      <span className="text-slate-400">Monthly Revenue:</span>
-                      <span className="font-bold text-white">${client.mrr} <span className="text-xs text-slate-400 font-normal">/mo</span></span>
+                      <span className="text-slate-400">Custom Services:</span>
+                      <span className="font-bold text-emerald-400">{client.businessConfig.customServices.length} items configured</span>
                     </div>
                     <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">Schema Namespace:</span>
-                      <code className="text-xs text-indigo-300 font-mono bg-slate-900/80 px-2 py-0.5 rounded border border-slate-800">{client.schema}</code>
+                      <span className="text-slate-400">Active Employees:</span>
+                      <span className="font-bold text-indigo-400">{client.businessConfig.employees.length} techs</span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-4 border-t border-slate-800/80 text-xs font-bold text-blue-400 group-hover:translate-x-1 transition-transform">
-                    <span>Manage Pricing & Settings</span>
+                    <span>Configure Business & Employees</span>
                     <span>?</span>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Selected Client Full Configuration & Pricing Editor */}
+            {/* Selected Client Comprehensive Business Configurator & Employee Manager */}
             {selectedClient && (
-              <div className="p-8 rounded-3xl bg-gradient-to-br from-[#0a0f1d] via-[#0a0f1d] to-blue-950/30 border border-blue-500/50 shadow-2xl relative overflow-hidden animate-fadeIn space-y-6">
+              <div className="p-8 rounded-3xl bg-gradient-to-br from-[#0a0f1d] via-[#0a0f1d] to-blue-950/30 border border-blue-500/50 shadow-2xl relative overflow-hidden animate-fadeIn space-y-8">
                 <div className="flex justify-between items-start border-b border-slate-800 pb-4">
                   <div>
-                    <span className="text-xs uppercase font-mono text-blue-400 font-bold tracking-wider">Tenant Configuration & Pricing Editor</span>
+                    <span className="text-xs uppercase font-mono text-blue-400 font-bold tracking-wider">Client Business Configurator & Employee Manager</span>
                     <h3 className="text-2xl font-black text-white mt-1">{selectedClient.name}</h3>
-                    <p className="text-xs font-mono text-slate-400 mt-1">Schema: <span className="text-emerald-400 font-bold">{selectedClient.schema}</span></p>
+                    <p className="text-xs font-mono text-slate-400 mt-1">Schema Namespace: <span className="text-emerald-400 font-bold">{selectedClient.schema}</span></p>
                   </div>
                   <button onClick={() => setSelectedClient(null)} className="h-9 w-9 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-sm font-bold transition">?</button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Price & Rate Adjustments */}
-                  <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
-                    <h4 className="text-xs font-mono uppercase tracking-wider text-blue-400 font-bold">Pricing & Subscription</h4>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  
+                  {/* Column 1: Estimator Formula & Rates */}
+                  <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+                    <h4 className="text-xs font-mono uppercase tracking-wider text-blue-400 font-bold">1. Client Estimator Formula</h4>
+                    
                     <div>
-                      <label className="block text-xs text-slate-400 mb-1">Monthly SaaS Fee ($/mo)</label>
+                      <label className="block text-xs text-slate-400 mb-1">Base Project Quote ($)</label>
                       <input 
                         type="number"
-                        value={selectedClient.mrr}
-                        onChange={(e) => handleUpdateClientConfig({...selectedClient, mrr: Number(e.target.value)} )}
+                        value={selectedClient.businessConfig.baseQuoteRate}
+                        onChange={(e) => handleUpdateBusinessConfig({
+                          ...selectedClient, 
+                          businessConfig: { ...selectedClient.businessConfig, baseQuoteRate: Number(e.target.value) }
+                        })}
                         className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold text-sm focus:outline-none focus:border-blue-500"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Estimator Base Rate ($)</label>
-                      <input 
-                        type="number"
-                        value={selectedClient.baseRate}
-                        onChange={(e) => handleUpdateClientConfig({...selectedClient, baseRate: Number(e.target.value)} )}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold text-sm focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
 
-                  {/* Multipliers & Rules */}
-                  <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
-                    <h4 className="text-xs font-mono uppercase tracking-wider text-blue-400 font-bold">Quoting Rules</h4>
                     <div>
-                      <label className="block text-xs text-slate-400 mb-1">Emergency Multiplier (e.g. 1.4x)</label>
+                      <label className="block text-xs text-slate-400 mb-1">Emergency Dispatch Fee ($)</label>
+                      <input 
+                        type="number"
+                        value={selectedClient.businessConfig.emergencyFee}
+                        onChange={(e) => handleUpdateBusinessConfig({
+                          ...selectedClient, 
+                          businessConfig: { ...selectedClient.businessConfig, emergencyFee: Number(e.target.value) }
+                        })}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Sales Tax Rate (%)</label>
                       <input 
                         type="number"
                         step="0.1"
-                        value={selectedClient.emergencyMultiplier}
-                        onChange={(e) => handleUpdateClientConfig({...selectedClient, emergencyMultiplier: Number(e.target.value)} )}
+                        value={selectedClient.businessConfig.taxRate}
+                        onChange={(e) => handleUpdateBusinessConfig({
+                          ...selectedClient, 
+                          businessConfig: { ...selectedClient.businessConfig, taxRate: Number(e.target.value) }
+                        })}
                         className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold text-sm focus:outline-none focus:border-blue-500"
                       />
                     </div>
-                    <div className="pt-2 text-xs text-slate-400">
-                      Changes instantly update isolated database config table for <code className="text-indigo-300">{selectedClient.schema}</code>.
+                  </div>
+
+                  {/* Column 2: Custom Service Line Items */}
+                  <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4 flex flex-col justify-between">
+                    <div>
+                      <h4 className="text-xs font-mono uppercase tracking-wider text-blue-400 font-bold mb-3">2. Custom Service Line Items</h4>
+                      
+                      <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
+                        {selectedClient.businessConfig.customServices.map((service) => (
+                          <div key={service.id} className="flex justify-between items-center p-2 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+                            <div>
+                              <span className="font-semibold text-white">{service.name}</span>
+                              <span className="text-slate-400 ml-2">${service.price}</span>
+                            </div>
+                            <button onClick={() => handleDeleteService(service.id)} className="text-rose-400 hover:text-rose-300 font-bold">?</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-slate-800">
+                      <input 
+                        type="text"
+                        placeholder="Service Name (e.g. Panel Upgrade)"
+                        value={newServiceName}
+                        onChange={(e) => setNewServiceName(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500"
+                      />
+                      <div className="flex gap-2">
+                        <input 
+                          type="number"
+                          placeholder="Price ($)"
+                          value={newServicePrice}
+                          onChange={(e) => setNewServicePrice(e.target.value)}
+                          className="w-28 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500"
+                        />
+                        <button onClick={handleAddService} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-xl text-xs transition">
+                          + Add Service
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Feature Toggles */}
-                  <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
-                    <h4 className="text-xs font-mono uppercase tracking-wider text-blue-400 font-bold">Feature Toggles</h4>
-                    <div className="space-y-2 text-xs">
-                      <label className="flex items-center justify-between cursor-pointer">
-                        <span className="text-slate-300">Client Portal</span>
+                  {/* Column 3: Employee Dispatch Roster */}
+                  <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4 flex flex-col justify-between">
+                    <div>
+                      <h4 className="text-xs font-mono uppercase tracking-wider text-blue-400 font-bold mb-3">3. Employee Dispatch Roster</h4>
+                      
+                      <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
+                        {selectedClient.businessConfig.employees.map((emp) => (
+                          <div key={emp.id} className="flex justify-between items-center p-2 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+                            <div>
+                              <div className="font-semibold text-white">{emp.name} <span className="text-slate-400 font-normal">({emp.role})</span></div>
+                              <div className="text-[10px] text-emerald-400">{emp.phone} • {emp.status}</div>
+                            </div>
+                            <button onClick={() => handleDeleteEmployee(emp.id)} className="text-rose-400 hover:text-rose-300 font-bold">?</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-slate-800">
+                      <input 
+                        type="text"
+                        placeholder="Employee Name"
+                        value={newEmpName}
+                        onChange={(e) => setNewEmpName(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500"
+                      />
+                      <div className="flex gap-2">
                         <input 
-                          type="checkbox" 
-                          checked={selectedClient.modules.portal}
-                          onChange={(e) => handleUpdateClientConfig({...selectedClient, modules: {...selectedClient.modules, portal: e.target.checked}})}
-                          className="accent-blue-600 h-4 w-4"
+                          type="text"
+                          placeholder="Role (e.g. Lead Tech)"
+                          value={newEmpRole}
+                          onChange={(e) => setNewEmpRole(e.target.value)}
+                          className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500"
                         />
-                      </label>
-                      <label className="flex items-center justify-between cursor-pointer">
-                        <span className="text-slate-300">Stripe Checkout</span>
-                        <input 
-                          type="checkbox" 
-                          checked={selectedClient.modules.stripe}
-                          onChange={(e) => handleUpdateClientConfig({...selectedClient, modules: {...selectedClient.modules, stripe: e.target.checked}})}
-                          className="accent-blue-600 h-4 w-4"
-                        />
-                      </label>
-                      <label className="flex items-center justify-between cursor-pointer">
-                        <span className="text-slate-300">Job Dispatch Queue</span>
-                        <input 
-                          type="checkbox" 
-                          checked={selectedClient.modules.dispatch}
-                          onChange={(e) => handleUpdateClientConfig({...selectedClient, modules: {...selectedClient.modules, dispatch: e.target.checked}})}
-                          className="accent-blue-600 h-4 w-4"
-                        />
-                      </label>
+                        <button onClick={handleAddEmployee} className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
+                          + Add Tech
+                        </button>
+                      </div>
                     </div>
                   </div>
+
                 </div>
 
                 <div className="flex gap-4 pt-4 border-t border-slate-800">
                   <button className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-lg transition">
-                    Save & Push to Vercel Edge
+                    Save Config & Sync to Tenant Portal
                   </button>
                   <button className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-6 py-3 rounded-2xl font-bold text-sm transition">
-                    Sync Stripe Billing
+                    Test Estimator Preview
                   </button>
                 </div>
               </div>
