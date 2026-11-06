@@ -1,21 +1,80 @@
 import React, { useState } from 'react';
 
 export default function AgencyMasterDashboard() {
-  const [selectedClient, setSelectedClient] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [isProvisioningOpen, setIsProvisioningOpen] = useState(false);
-  
+  const [selectedClient, setSelectedClient] = useState(null);
+
+  // Editable Client Fleet State
+  const [clients, setClients] = useState([
+    { 
+      id: 1, 
+      name: 'Apex Electric & HVAC', 
+      tier: 'Growth Pro', 
+      status: 'Active', 
+      mrr: 149, 
+      schema: 'tenant_apex_prod', 
+      leads: 42, 
+      uptime: '99.99%', 
+      badge: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+      baseRate: 1450,
+      emergencyMultiplier: 1.4,
+      modules: { portal: true, stripe: true, dispatch: true }
+    },
+    { 
+      id: 2, 
+      name: 'Precision Roofing & Siding', 
+      tier: 'Startup Launchpad', 
+      status: 'Active', 
+      mrr: 49, 
+      schema: 'tenant_precision_prod', 
+      leads: 18, 
+      uptime: '100%', 
+      badge: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+      baseRate: 2200,
+      emergencyMultiplier: 1.5,
+      modules: { portal: true, stripe: false, dispatch: true }
+    },
+    { 
+      id: 3, 
+      name: 'Summit Plumbing Solutions', 
+      tier: 'Enterprise', 
+      status: 'Provisioning', 
+      mrr: 399, 
+      schema: 'tenant_summit_prod', 
+      leads: 64, 
+      uptime: '99.95%', 
+      badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+      baseRate: 1750,
+      emergencyMultiplier: 1.3,
+      modules: { portal: true, stripe: true, dispatch: true }
+    }
+  ]);
+
   // New Tenant Form State
   const [newClientName, setNewClientName] = useState('');
   const [newClientTier, setNewClientTier] = useState('Growth Pro');
   const [provisionLogs, setProvisionLogs] = useState([]);
   const [isProvisioning, setIsProvisioning] = useState(false);
 
-  const [clients, setClients] = useState([
-    { id: 1, name: 'Apex Electric & HVAC', tier: 'Growth Pro', status: 'Active', mrr: 149, schema: 'tenant_apex_prod', leads: 42, uptime: '99.99%', badge: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
-    { id: 2, name: 'Precision Roofing & Siding', tier: 'Startup Launchpad', status: 'Active', mrr: 49, schema: 'tenant_precision_prod', leads: 18, uptime: '100%', badge: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
-    { id: 3, name: 'Summit Plumbing Solutions', tier: 'Enterprise', status: 'Provisioning', mrr: 399, schema: 'tenant_summit_prod', leads: 64, uptime: '99.95%', badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' }
-  ]);
+  // Estimator Preview State
+  const [projectType, setProjectType] = useState('hvac');
+  const [urgency, setUrgency] = useState('standard');
+  const [addons, setAddons] = useState({ portal: true, stripe: true, dispatch: true });
+
+  const calculateEstimate = () => {
+    let base = projectType === 'hvac' ? 1450 : projectType === 'roofing' ? 2200 : 1750;
+    if (urgency === 'emergency') base *= 1.4;
+    if (addons.portal) base += 450;
+    if (addons.stripe) base += 300;
+    if (addons.dispatch) base += 600;
+    return base;
+  };
+
+  const handleUpdateClientConfig = (updatedClient) => {
+    setClients(prev => prev.map(c => c.id === updatedClient.id ? updatedClient : c));
+    setSelectedClient(updatedClient);
+  };
 
   const handleProvisionTenant = (e) => {
     e.preventDefault();
@@ -43,7 +102,10 @@ export default function AgencyMasterDashboard() {
         schema: `tenant_${slug}_prod`,
         leads: 0,
         uptime: '100%',
-        badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+        badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+        baseRate: 1500,
+        emergencyMultiplier: 1.4,
+        modules: { portal: true, stripe: true, dispatch: true }
       };
       setClients(prev => [newTenant, ...prev]);
       setIsProvisioning(false);
@@ -74,7 +136,7 @@ export default function AgencyMasterDashboard() {
               onClick={() => setActiveTab('overview')} 
               className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 ${activeTab === 'overview' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 ring-1 ring-white/10' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'}`}
             >
-              <span>??</span> Tenant Fleet
+              <span>??</span> Tenant Fleet & Settings
             </button>
             <button 
               onClick={() => setActiveTab('estimator')} 
@@ -112,8 +174,8 @@ export default function AgencyMasterDashboard() {
             
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-3xl font-black tracking-tight text-white">Client Tenant Fleet</h2>
-                <p className="text-sm text-slate-400 mt-1">Manage zero-overlap database schemas, isolated portals, and Stripe subscriptions.</p>
+                <h2 className="text-3xl font-black tracking-tight text-white">Client Tenant Fleet & Configs</h2>
+                <p className="text-sm text-slate-400 mt-1">Manage pricing, feature toggles, zero-overlap database schemas, and Stripe subscriptions.</p>
               </div>
               <button 
                 onClick={() => setIsProvisioningOpen(true)}
@@ -170,64 +232,122 @@ export default function AgencyMasterDashboard() {
 
                   <div className="space-y-3 my-6 text-sm">
                     <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-                      <span className="text-slate-400">Schema Namespace:</span>
-                      <code className="text-xs text-indigo-300 font-mono bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-800">{client.schema}</code>
+                      <span className="text-slate-400">Estimator Base Rate:</span>
+                      <span className="font-bold text-emerald-400">${client.baseRate}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-800/60">
                       <span className="text-slate-400">Monthly Revenue:</span>
                       <span className="font-bold text-white">${client.mrr} <span className="text-xs text-slate-400 font-normal">/mo</span></span>
                     </div>
                     <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">Uptime Guarantee:</span>
-                      <span className="text-emerald-400 font-semibold">{client.uptime}</span>
+                      <span className="text-slate-400">Schema Namespace:</span>
+                      <code className="text-xs text-indigo-300 font-mono bg-slate-900/80 px-2 py-0.5 rounded border border-slate-800">{client.schema}</code>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-4 border-t border-slate-800/80 text-xs font-bold text-blue-400 group-hover:translate-x-1 transition-transform">
-                    <span>Manage Tenant Controls</span>
+                    <span>Manage Pricing & Settings</span>
                     <span>?</span>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Selected Client Inspection Drawer */}
+            {/* Selected Client Full Configuration & Pricing Editor */}
             {selectedClient && (
-              <div className="p-8 rounded-3xl bg-gradient-to-br from-[#0a0f1d] via-[#0a0f1d] to-blue-950/30 border border-blue-500/50 shadow-2xl relative overflow-hidden animate-fadeIn">
-                <div className="flex justify-between items-start mb-6">
+              <div className="p-8 rounded-3xl bg-gradient-to-br from-[#0a0f1d] via-[#0a0f1d] to-blue-950/30 border border-blue-500/50 shadow-2xl relative overflow-hidden animate-fadeIn space-y-6">
+                <div className="flex justify-between items-start border-b border-slate-800 pb-4">
                   <div>
-                    <span className="text-xs uppercase font-mono text-blue-400 font-bold tracking-wider">Active Tenant Inspection</span>
+                    <span className="text-xs uppercase font-mono text-blue-400 font-bold tracking-wider">Tenant Configuration & Pricing Editor</span>
                     <h3 className="text-2xl font-black text-white mt-1">{selectedClient.name}</h3>
-                    <p className="text-xs font-mono text-slate-400 mt-1">Database Schema: <span className="text-emerald-400 font-bold">{selectedClient.schema}</span></p>
+                    <p className="text-xs font-mono text-slate-400 mt-1">Schema: <span className="text-emerald-400 font-bold">{selectedClient.schema}</span></p>
                   </div>
                   <button onClick={() => setSelectedClient(null)} className="h-9 w-9 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-sm font-bold transition">?</button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                  <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg">
-                    <div className="text-xs text-slate-400 mb-1 font-medium">Subscription Tier</div>
-                    <div className="text-lg font-extrabold text-white">{selectedClient.tier}</div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Price & Rate Adjustments */}
+                  <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+                    <h4 className="text-xs font-mono uppercase tracking-wider text-blue-400 font-bold">Pricing & Subscription</h4>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Monthly SaaS Fee ($/mo)</label>
+                      <input 
+                        type="number"
+                        value={selectedClient.mrr}
+                        onChange={(e) => handleUpdateClientConfig({...selectedClient, mrr: Number(e.target.value)} )}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Estimator Base Rate ($)</label>
+                      <input 
+                        type="number"
+                        value={selectedClient.baseRate}
+                        onChange={(e) => handleUpdateClientConfig({...selectedClient, baseRate: Number(e.target.value)} )}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
                   </div>
-                  <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg">
-                    <div className="text-xs text-slate-400 mb-1 font-medium">Stripe Billing</div>
-                    <div className="text-lg font-extrabold text-emerald-400">${selectedClient.mrr} <span className="text-xs text-slate-400 font-normal">/mo</span></div>
+
+                  {/* Multipliers & Rules */}
+                  <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+                    <h4 className="text-xs font-mono uppercase tracking-wider text-blue-400 font-bold">Quoting Rules</h4>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Emergency Multiplier (e.g. 1.4x)</label>
+                      <input 
+                        type="number"
+                        step="0.1"
+                        value={selectedClient.emergencyMultiplier}
+                        onChange={(e) => handleUpdateClientConfig({...selectedClient, emergencyMultiplier: Number(e.target.value)} )}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="pt-2 text-xs text-slate-400">
+                      Changes instantly update isolated database config table for <code className="text-indigo-300">{selectedClient.schema}</code>.
+                    </div>
                   </div>
-                  <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg">
-                    <div className="text-xs text-slate-400 mb-1 font-medium">Captured Leads</div>
-                    <div className="text-lg font-extrabold text-white">{selectedClient.leads} leads</div>
-                  </div>
-                  <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg">
-                    <div className="text-xs text-slate-400 mb-1 font-medium">Partition Status</div>
-                    <div className="text-lg font-extrabold text-emerald-400">Encrypted / Secure</div>
+
+                  {/* Feature Toggles */}
+                  <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+                    <h4 className="text-xs font-mono uppercase tracking-wider text-blue-400 font-bold">Feature Toggles</h4>
+                    <div className="space-y-2 text-xs">
+                      <label className="flex items-center justify-between cursor-pointer">
+                        <span className="text-slate-300">Client Portal</span>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedClient.modules.portal}
+                          onChange={(e) => handleUpdateClientConfig({...selectedClient, modules: {...selectedClient.modules, portal: e.target.checked}})}
+                          className="accent-blue-600 h-4 w-4"
+                        />
+                      </label>
+                      <label className="flex items-center justify-between cursor-pointer">
+                        <span className="text-slate-300">Stripe Checkout</span>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedClient.modules.stripe}
+                          onChange={(e) => handleUpdateClientConfig({...selectedClient, modules: {...selectedClient.modules, stripe: e.target.checked}})}
+                          className="accent-blue-600 h-4 w-4"
+                        />
+                      </label>
+                      <label className="flex items-center justify-between cursor-pointer">
+                        <span className="text-slate-300">Job Dispatch Queue</span>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedClient.modules.dispatch}
+                          onChange={(e) => handleUpdateClientConfig({...selectedClient, modules: {...selectedClient.modules, dispatch: e.target.checked}})}
+                          className="accent-blue-600 h-4 w-4"
+                        />
+                      </label>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-4">
-                  <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3.5 rounded-2xl font-bold text-sm shadow-xl shadow-blue-500/25 transition">
-                    Launch Client Portal
+                <div className="flex gap-4 pt-4 border-t border-slate-800">
+                  <button className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-lg transition">
+                    Save & Push to Vercel Edge
                   </button>
-                  <button className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-6 py-3.5 rounded-2xl font-bold text-sm border border-slate-700 transition">
-                    Sync Stripe Webhooks
+                  <button className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-6 py-3 rounded-2xl font-bold text-sm transition">
+                    Sync Stripe Billing
                   </button>
                 </div>
               </div>
