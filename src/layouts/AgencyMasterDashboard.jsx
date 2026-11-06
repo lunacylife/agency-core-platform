@@ -3,10 +3,12 @@ import React, { useState } from 'react';
 export default function AgencyMasterDashboard() {
   const [activeTab, setActiveTab] = useState('fleet');
   const [selectedClient, setSelectedClient] = useState(null);
-  const [clientSubTab, setClientSubTab] = useState('config'); // 'config' | 'employees' | 'dns' | 'preview'
-  const [isProvisioningOpen, setIsProvisioningOpen] = useState(false);
+  const [clientSubTab, setClientSubTab] = useState('config');
 
-  // Full Multi-Tenant Fleet State with Complete Client Backends
+  // Deleted items buffer for instant undo recovery
+  const [recentlyDeletedService, setRecentlyDeletedService] = useState(null);
+
+  // Full Multi-Tenant Fleet State
   const [clients, setClients] = useState([
     { 
       id: 1, 
@@ -88,17 +90,16 @@ export default function AgencyMasterDashboard() {
     }
   ]);
 
-  // New Service / Employee Input State for Selected Client
+  // Form Input State
   const [newServiceName, setNewServiceName] = useState('');
   const [newServicePrice, setNewServicePrice] = useState('');
   const [newEmpName, setNewEmpName] = useState('');
   const [newEmpRole, setNewEmpRole] = useState('');
   const [newEmpPhone, setNewEmpPhone] = useState('');
-
-  // Onboarding Form State
   const [newClientName, setNewClientName] = useState('');
   const [newClientTier, setNewClientTier] = useState('Growth Pro');
   const [newClientDomain, setNewClientDomain] = useState('');
+  const [isProvisioningOpen, setIsProvisioningOpen] = useState(false);
   const [provisionLogs, setProvisionLogs] = useState([]);
   const [isProvisioning, setIsProvisioning] = useState(false);
 
@@ -123,12 +124,31 @@ export default function AgencyMasterDashboard() {
   };
 
   const handleDeleteService = (serviceId) => {
+    const targetService = selectedClient.businessConfig.customServices.find(s => s.id === serviceId);
+    if (!targetService) return;
+
+    if (!window.confirm(`Are you sure you want to delete service item "${targetService.name}"?`)) {
+      return;
+    }
+
+    setRecentlyDeletedService(targetService);
     const updatedServices = selectedClient.businessConfig.customServices.filter(s => s.id !== serviceId);
     const updatedClient = {
       ...selectedClient,
       businessConfig: { ...selectedClient.businessConfig, customServices: updatedServices }
     };
     handleUpdateClient(updatedClient);
+  };
+
+  const handleUndoDeleteService = () => {
+    if (!recentlyDeletedService || !selectedClient) return;
+    const updatedServices = [...selectedClient.businessConfig.customServices, recentlyDeletedService];
+    const updatedClient = {
+      ...selectedClient,
+      businessConfig: { ...selectedClient.businessConfig, customServices: updatedServices }
+    };
+    handleUpdateClient(updatedClient);
+    setRecentlyDeletedService(null);
   };
 
   const handleAddEmployee = () => {
@@ -148,6 +168,7 @@ export default function AgencyMasterDashboard() {
   };
 
   const handleDeleteEmployee = (empId) => {
+    if (!window.confirm("Are you sure you want to remove this employee from the dispatch roster?")) return;
     const updatedEmployees = selectedClient.businessConfig.employees.filter(e => e.id !== empId);
     const updatedClient = {
       ...selectedClient,
@@ -214,7 +235,7 @@ export default function AgencyMasterDashboard() {
             </div>
             <div>
               <h1 className="text-sm font-black tracking-wider text-white uppercase">Agency Master</h1>
-              <p className="text-xs text-blue-400 font-medium">Command Center v2.6</p>
+              <p className="text-xs text-blue-400 font-medium">Command Center v2.7</p>
             </div>
           </div>
 
@@ -236,7 +257,7 @@ export default function AgencyMasterDashboard() {
 
         <div className="p-4 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/40 border border-slate-800/80 shadow-inner">
           <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Master Status</div>
-          <div className="text-xs text-emerald-400 font-bold mt-1">Full Backend Access Active</div>
+          <div className="text-xs text-emerald-400 font-bold mt-1">Undo Protection Active</div>
         </div>
       </aside>
 
@@ -250,7 +271,7 @@ export default function AgencyMasterDashboard() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-3xl font-black tracking-tight text-white">Client Tenant Fleet</h2>
-                <p className="text-sm text-slate-400 mt-1">Select any contractor client below to open their full backend command center, employee roster, and DNS settings.</p>
+                <p className="text-sm text-slate-400 mt-1">Select any contractor client below to open their full backend command center.</p>
               </div>
               <button 
                 onClick={() => setIsProvisioningOpen(true)}
@@ -307,7 +328,6 @@ export default function AgencyMasterDashboard() {
         {activeTab === 'fleet' && selectedClient && (
           <div className="max-w-6xl mx-auto space-y-8 animate-fadeIn">
             
-            {/* Top Bar with Sub-Navigation */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-6 gap-4">
               <div>
                 <span className="text-xs uppercase font-mono text-blue-400 font-bold tracking-wider">Client Backend Admin Control</span>
@@ -342,6 +362,16 @@ export default function AgencyMasterDashboard() {
               </div>
             </div>
 
+            {/* Recently Deleted Undo Banner */}
+            {recentlyDeletedService && (
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex justify-between items-center text-xs text-amber-300 animate-fadeIn">
+                <span>Deleted service item: <strong>{recentlyDeletedService.name}</strong></span>
+                <button onClick={handleUndoDeleteService} className="bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl hover:bg-amber-400 transition">
+                  ? Undo / Restore
+                </button>
+              </div>
+            )}
+
             {/* SUB-TAB 1: BUSINESS CONFIG & QUOTING FORMULAS */}
             {clientSubTab === 'config' && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fadeIn">
@@ -373,16 +403,6 @@ export default function AgencyMasterDashboard() {
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white font-bold text-sm focus:outline-none focus:border-blue-500"
                     />
                   </div>
-
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Landing Page Hero Headline</label>
-                    <input 
-                      type="text"
-                      value={selectedClient.landingPageHeadline}
-                      onChange={(e) => handleUpdateClient({ ...selectedClient, landingPageHeadline: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
                 </div>
 
                 <div className="p-7 rounded-3xl bg-[#0a0f1d] border border-slate-800 space-y-6 shadow-2xl flex flex-col justify-between">
@@ -394,7 +414,13 @@ export default function AgencyMasterDashboard() {
                           <span className="font-semibold text-white">{s.name}</span>
                           <div className="flex items-center gap-3">
                             <span className="text-emerald-400 font-bold">${s.price}</span>
-                            <button onClick={() => handleDeleteService(s.id)} className="text-rose-400 hover:text-rose-300 font-bold">?</button>
+                            <button 
+                              onClick={() => handleDeleteService(s.id)} 
+                              title="Delete Service Item"
+                              className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-bold border border-rose-500/20 transition"
+                            >
+                              Delete
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -426,7 +452,7 @@ export default function AgencyMasterDashboard() {
               </div>
             )}
 
-            {/* SUB-TAB 2: EMPLOYEE ROSTER & SMS DISPATCH */}
+            {/* SUB-TAB 2: EMPLOYEE ROSTER */}
             {clientSubTab === 'employees' && (
               <div className="p-7 rounded-3xl bg-[#0a0f1d] border border-slate-800 space-y-6 shadow-2xl animate-fadeIn">
                 <h4 className="text-sm font-mono uppercase tracking-wider text-indigo-400 font-bold">Employee Dispatch Roster & Twilio SMS Config</h4>
@@ -440,7 +466,7 @@ export default function AgencyMasterDashboard() {
                           <div className="font-bold text-white text-sm">{e.name} <span className="text-slate-400 font-normal">({e.role})</span></div>
                           <div className="text-emerald-400 font-mono mt-1">?? SMS: {e.phone} • Status: {e.status}</div>
                         </div>
-                        <button onClick={() => handleDeleteEmployee(e.id)} className="text-rose-400 hover:text-rose-300 font-bold">Remove</button>
+                        <button onClick={() => handleDeleteEmployee(e.id)} className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-bold border border-rose-500/20 transition">Remove</button>
                       </div>
                     ))}
                   </div>
@@ -476,7 +502,7 @@ export default function AgencyMasterDashboard() {
               </div>
             )}
 
-            {/* SUB-TAB 3: DNS & WEB DEPLOYMENT SETTINGS */}
+            {/* SUB-TAB 3: DNS */}
             {clientSubTab === 'dns' && (
               <div className="p-7 rounded-3xl bg-[#0a0f1d] border border-slate-800 space-y-6 shadow-2xl animate-fadeIn">
                 <h4 className="text-sm font-mono uppercase tracking-wider text-blue-400 font-bold">DNS & Vercel Edge Deployment Settings</h4>
@@ -509,7 +535,7 @@ export default function AgencyMasterDashboard() {
           </div>
         )}
 
-        {/* VIEW C: GLOBAL AGENCY SETTINGS */}
+        {/* VIEW C: GLOBAL SETTINGS */}
         {activeTab === 'global-settings' && (
           <div className="max-w-4xl mx-auto space-y-8 animate-fadeIn">
             <div>
