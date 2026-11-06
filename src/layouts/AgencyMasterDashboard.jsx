@@ -4,7 +4,6 @@ export default function AgencyMasterDashboard() {
   const [selectedClient, setSelectedClient] = useState(null);
   const [activeTab, setActiveTab] = useState('clients');
 
-  // Estimator State for live preview
   const [projectType, setProjectType] = useState('hvac');
   const [urgency, setUrgency] = useState('standard');
   const [addons, setAddons] = useState({ portal: true, stripe: true, dispatch: false });
@@ -37,13 +36,13 @@ export default function AgencyMasterDashboard() {
             </div>
           </div>
           <nav className="space-y-1.5">
-            <button onClick={() => setActiveTab('clients')} className={w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-sm transition }>
+            <button onClick={() => setActiveTab('clients')} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-sm transition ${activeTab === 'clients' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25' : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'}`}>
               <span>??</span> Client Portals
             </button>
-            <button onClick={() => setActiveTab('estimator')} className={w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-sm transition }>
+            <button onClick={() => setActiveTab('estimator')} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-sm transition ${activeTab === 'estimator' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25' : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'}`}>
               <span>??</span> Public Estimator Engine
             </button>
-            <button onClick={() => setActiveTab('jobs')} className={w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-sm transition }>
+            <button onClick={() => setActiveTab('jobs')} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-sm transition ${activeTab === 'jobs' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25' : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'}`}>
               <span>?</span> Job Dispatch Queue
             </button>
           </nav>
@@ -77,7 +76,7 @@ export default function AgencyMasterDashboard() {
                 <div
                   key={client.id}
                   onClick={() => setSelectedClient(client)}
-                  className={p-6 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-900/60 border cursor-pointer transition-all shadow-xl hover:shadow-blue-500/10 }
+                  className={`p-6 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-900/60 border cursor-pointer transition-all shadow-xl hover:shadow-blue-500/10 ${selectedClient?.id === client.id ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-800 hover:border-slate-700'}`}
                 >
                   <div className="flex justify-between items-start mb-4">
                     <span className="font-bold text-white text-base">{client.name}</span>
@@ -85,7 +84,7 @@ export default function AgencyMasterDashboard() {
                   </div>
                   <div className="space-y-2 text-sm text-slate-400 mb-4">
                     <div className="flex justify-between"><span>Status:</span> <span className="text-emerald-400 font-medium">{client.status}</span></div>
-                    <div className="flex justify-between"><span>Monthly Revenue:</span> <span className="text-white font-semibold">\/mo</span></div>
+                    <div className="flex justify-between"><span>Monthly Revenue:</span> <span className="text-white font-semibold">${client.mrr}/mo</span></div>
                     <div className="flex justify-between"><span>Active Leads:</span> <span className="text-slate-200">{client.leads}</span></div>
                   </div>
                   <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-blue-400 font-medium">
@@ -109,7 +108,7 @@ export default function AgencyMasterDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50">
                     <div className="text-xs text-slate-400 mb-1">Stripe Billing</div>
-                    <div className="text-lg font-bold text-white">\ <span className="text-xs font-normal text-slate-400">/ month</span></div>
+                    <div className="text-lg font-bold text-white">${selectedClient.mrr} <span className="text-xs font-normal text-slate-400">/ month</span></div>
                   </div>
                   <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50">
                     <div className="text-xs text-slate-400 mb-1">Dispatched Jobs</div>
@@ -159,8 +158,8 @@ export default function AgencyMasterDashboard() {
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">Service Urgency</label>
                   <div className="grid grid-cols-2 gap-4">
-                    <button onClick={() => setUrgency('standard')} className={py-3 px-4 rounded-xl border text-sm font-medium transition }>Standard Scheduling</button>
-                    <button onClick={() => setUrgency('emergency')} className={py-3 px-4 rounded-xl border text-sm font-medium transition }>Emergency Dispatch (+50%)</button>
+                    <button onClick={() => setUrgency('standard')} className={`py-3 px-4 rounded-xl border text-sm font-medium transition ${urgency === 'standard' ? 'bg-blue-600/10 border-blue-500 text-blue-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>Standard Scheduling</button>
+                    <button onClick={() => setUrgency('emergency')} className={`py-3 px-4 rounded-xl border text-sm font-medium transition ${urgency === 'emergency' ? 'bg-blue-600/10 border-blue-500 text-blue-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>Emergency Dispatch (+50%)</button>
                   </div>
                 </div>
 
@@ -169,15 +168,15 @@ export default function AgencyMasterDashboard() {
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
                       <input type="checkbox" checked={addons.portal} onChange={(e) => setAddons({...addons, portal: e.target.checked})} className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0" />
-                      <span className="text-sm text-slate-300">Client Portal Access ()</span>
+                      <span className="text-sm text-slate-300">Client Portal Access ($350)</span>
                     </label>
                     <label className="flex items-center gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
                       <input type="checkbox" checked={addons.stripe} onChange={(e) => setAddons({...addons, stripe: e.target.checked})} className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0" />
-                      <span className="text-sm text-slate-300">Stripe Instant Deposit Link ()</span>
+                      <span className="text-sm text-slate-300">Stripe Instant Deposit Link ($250)</span>
                     </label>
                     <label className="flex items-center gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
                       <input type="checkbox" checked={addons.dispatch} onChange={(e) => setAddons({...addons, dispatch: e.target.checked})} className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0" />
-                      <span className="text-sm text-slate-300">Advanced Employee Dispatch Queue ()</span>
+                      <span className="text-sm text-slate-300">Advanced Employee Dispatch Queue ($500)</span>
                     </label>
                   </div>
                 </div>
@@ -187,7 +186,7 @@ export default function AgencyMasterDashboard() {
               <div className="bg-gradient-to-b from-blue-950/40 to-slate-900 border border-blue-500/30 rounded-2xl p-6 flex flex-col justify-between shadow-2xl">
                 <div>
                   <div className="text-xs uppercase tracking-wider text-blue-400 font-semibold mb-2">Instant Estimate Breakdown</div>
-                  <div className="text-4xl font-extrabold text-white mb-6">\ <span className="text-sm font-normal text-slate-400">Estimated Total</span></div>
+                  <div className="text-4xl font-extrabold text-white mb-6">${calculateEstimate().toLocaleString()} <span className="text-sm font-normal text-slate-400">Estimated Total</span></div>
                   <ul className="space-y-3 text-sm text-slate-300 mb-8">
                     <li className="flex justify-between pb-2 border-b border-slate-800"><span>Project Type:</span> <span className="font-semibold text-white uppercase">{projectType}</span></li>
                     <li className="flex justify-between pb-2 border-b border-slate-800"><span>Urgency Multiplier:</span> <span className="font-semibold text-white capitalize">{urgency}</span></li>
