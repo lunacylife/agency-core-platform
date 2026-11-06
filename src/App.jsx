@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import AgencyMasterDashboard from './layouts/AgencyMasterDashboard';
 import ClientPublicPortal from './components/ClientPublicPortal';
 
 export default function App() {
-  // Simple path-based router check for client landing pages vs master dashboard
+  const hostname = window.location.hostname;
   const path = window.location.pathname;
 
-  // Mock tenant dictionary for client-specific landing pages
+  // Mock tenant dictionary matching subdomains or path slugs
   const tenants = {
     'apex': {
       name: 'Apex Electric & HVAC',
       tradeType: 'HVAC & Electrical',
       landingPageHeadline: 'Expert Electrical & HVAC Services in Erie, PA',
-      customDomain: 'apexelectric.com',
+      customDomain: 'apex-hvac-portal.vercel.app',
       businessConfig: {
         baseQuoteRate: 1500,
         emergencyFee: 400,
@@ -27,7 +27,7 @@ export default function App() {
       name: 'Precision Roofing & Siding',
       tradeType: 'Roofing & Siding',
       landingPageHeadline: 'Premier Roofing & Siding Installation',
-      customDomain: 'precisionroofingpa.com',
+      customDomain: 'precision-roofing.vercel.app',
       businessConfig: {
         baseQuoteRate: 2400,
         emergencyFee: 750,
@@ -39,11 +39,11 @@ export default function App() {
     }
   };
 
-  // Check if URL matches /client/apex or similar slug
-  if (path.includes('/client/apex')) {
+  // Check if subdomain matches apex-hvac-portal or path contains /client/apex
+  if (hostname.includes('apex-hvac-portal') || path.includes('/client/apex')) {
     return <ClientPublicPortal clientData={tenants['apex']} />;
   }
-  if (path.includes('/client/precision')) {
+  if (hostname.includes('precision-roofing') || path.includes('/client/precision')) {
     return <ClientPublicPortal clientData={tenants['precision']} />;
   }
 
