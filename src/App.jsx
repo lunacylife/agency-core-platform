@@ -3,16 +3,15 @@ import AgencyMasterDashboard from './layouts/AgencyMasterDashboard';
 import ClientPublicPortal from './components/ClientPublicPortal';
 
 export default function App() {
-  const hostname = window.location.hostname;
-  const path = window.location.pathname;
+  const path = window.location.pathname.toLowerCase();
 
-  // Mock tenant dictionary matching subdomains or path slugs
+  // Tenant database dictionary
   const tenants = {
     'apex': {
       name: 'Apex Electric & HVAC',
       tradeType: 'HVAC & Electrical',
       landingPageHeadline: 'Expert Electrical & HVAC Services in Erie, PA',
-      customDomain: 'apex-hvac-portal.vercel.app',
+      customDomain: 'apexelectric.com',
       businessConfig: {
         baseQuoteRate: 1500,
         emergencyFee: 400,
@@ -27,7 +26,7 @@ export default function App() {
       name: 'Precision Roofing & Siding',
       tradeType: 'Roofing & Siding',
       landingPageHeadline: 'Premier Roofing & Siding Installation',
-      customDomain: 'precision-roofing.vercel.app',
+      customDomain: 'precisionroofingpa.com',
       businessConfig: {
         baseQuoteRate: 2400,
         emergencyFee: 750,
@@ -36,15 +35,32 @@ export default function App() {
           { id: 2, name: 'Gutter Guard Install', price: 900 }
         ]
       }
+    },
+    'summit': {
+      name: 'Summit Plumbing Solutions',
+      tradeType: 'Plumbing & Drains',
+      landingPageHeadline: '24/7 Emergency Plumbing & Drain Overhaul',
+      customDomain: 'summitplumbing.net',
+      businessConfig: {
+        baseQuoteRate: 1200,
+        emergencyFee: 350,
+        customServices: [
+          { id: 1, name: 'Hydro Jetting', price: 450 },
+          { id: 2, name: 'Tankless Water Heater', price: 1800 }
+        ]
+      }
     }
   };
 
-  // Check if subdomain matches apex-hvac-portal or path contains /client/apex
-  if (hostname.includes('apex-hvac-portal') || path.includes('/client/apex')) {
+  // Route matching based on clean URL paths
+  if (path === '/apex' || path === '/client/apex') {
     return <ClientPublicPortal clientData={tenants['apex']} />;
   }
-  if (hostname.includes('precision-roofing') || path.includes('/client/precision')) {
+  if (path === '/precision' || path === '/client/precision') {
     return <ClientPublicPortal clientData={tenants['precision']} />;
+  }
+  if (path === '/summit' || path === '/client/summit') {
+    return <ClientPublicPortal clientData={tenants['summit']} />;
   }
 
   // Default: Render Master Agency Dashboard
