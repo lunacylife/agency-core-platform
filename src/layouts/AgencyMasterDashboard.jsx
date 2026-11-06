@@ -17,20 +17,20 @@ export default function AgencyMasterDashboard() {
   };
 
   const clients = [
-    { id: 1, name: 'Apex Electric & HVAC', tier: 'Growth Pro', status: 'Active', mrr: 149, schema: 'tenant_apex_prod', leads: 42, uptime: '99.99%', badgeColor: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
-    { id: 2, name: 'Precision Roofing & Siding', tier: 'Startup Launchpad', status: 'Active', mrr: 49, schema: 'tenant_precision_prod', leads: 18, uptime: '100%', badgeColor: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
-    { id: 3, name: 'Summit Plumbing Solutions', tier: 'Enterprise', status: 'Provisioning', mrr: 399, schema: 'tenant_summit_prod', leads: 64, uptime: '99.95%', badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' }
+    { id: 1, name: 'Apex Electric & HVAC', tier: 'Growth Pro', status: 'Active', mrr: 149, schema: 'tenant_apex_prod', leads: 42, uptime: '99.99%', badge: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
+    { id: 2, name: 'Precision Roofing & Siding', tier: 'Startup Launchpad', status: 'Active', mrr: 49, schema: 'tenant_precision_prod', leads: 18, uptime: '100%', badge: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
+    { id: 3, name: 'Summit Plumbing Solutions', tier: 'Enterprise', status: 'Provisioning', mrr: 399, schema: 'tenant_summit_prod', leads: 64, uptime: '99.95%', badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' }
   ];
 
   return (
-    <div className="min-h-screen bg-[#060913] text-slate-100 flex font-sans selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-[#05070c] text-slate-100 flex font-sans selection:bg-blue-600 selection:text-white">
       
-      {/* Sidebar */}
-      <aside className="w-72 bg-[#0a0f1d]/90 backdrop-blur-2xl border-r border-slate-800/80 p-6 flex flex-col justify-between shadow-2xl">
+      {/* Sidebar Navigation */}
+      <aside className="w-72 bg-[#090e1b]/95 backdrop-blur-2xl border-r border-slate-800/80 p-6 flex flex-col justify-between shadow-2xl">
         <div>
-          {/* Logo Brand */}
+          {/* Logo & Brand Header */}
           <div className="flex items-center gap-3.5 mb-10 pb-6 border-b border-slate-800/80">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 flex items-center justify-center font-black text-xl text-white shadow-xl shadow-blue-500/25 ring-1 ring-white/20">
+            <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 flex items-center justify-center font-black text-xl text-white shadow-xl shadow-blue-500/30 ring-1 ring-white/20">
               A
             </div>
             <div>
@@ -39,7 +39,7 @@ export default function AgencyMasterDashboard() {
             </div>
           </div>
 
-          {/* Navigation */}
+          {/* Navigation Links */}
           <nav className="space-y-2">
             <button 
               onClick={() => setActiveTab('overview')} 
@@ -62,7 +62,7 @@ export default function AgencyMasterDashboard() {
           </nav>
         </div>
 
-        {/* Status Widget */}
+        {/* Cluster Health Widget */}
         <div className="p-4 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/40 border border-slate-800/80 shadow-inner">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Cluster Health</span>
@@ -76,13 +76,13 @@ export default function AgencyMasterDashboard() {
         </div>
       </aside>
 
-      {/* Main Workspace */}
-      <main className="flex-1 p-10 overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-[#060913] to-[#060913]">
+      {/* Main Workspace Area */}
+      <main className="flex-1 p-10 overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-[#05070c] to-[#05070c]">
         
         {activeTab === 'overview' && (
-          <div className="max-w-6xl mx-auto space-y-8 animate-fadeIn">
+          <div className="max-w-6xl mx-auto space-y-8">
             
-            {/* Header */}
+            {/* Header Banner */}
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-3xl font-black tracking-tight text-white">Client Tenant Fleet</h2>
@@ -93,7 +93,7 @@ export default function AgencyMasterDashboard() {
               </button>
             </div>
 
-            {/* Metrics Grid */}
+            {/* Metrics Overview */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
               <div className="p-6 rounded-3xl bg-[#0a0f1d] border border-slate-800/80 shadow-xl relative overflow-hidden group hover:border-blue-500/40 transition">
                 <div className="absolute top-0 right-0 p-4 text-blue-500/10 text-4xl font-black">$$</div>
@@ -124,7 +124,7 @@ export default function AgencyMasterDashboard() {
               </div>
             </div>
 
-            {/* Tenant Cards */}
+            {/* Tenant Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {clients.map((client) => (
                 <div
@@ -134,7 +134,7 @@ export default function AgencyMasterDashboard() {
                 >
                   <div className="flex justify-between items-start mb-5">
                     <div>
-                      <span className={`text-[11px] font-extrabold font-mono uppercase tracking-widest px-2.5 py-1 rounded-lg border ${client.badgeColor}`}>{client.tier}</span>
+                      <span className={`text-[11px] font-extrabold font-mono uppercase tracking-widest px-2.5 py-1 rounded-lg border ${client.badge}`}>{client.tier}</span>
                       <h3 className="text-lg font-bold text-white mt-3 group-hover:text-blue-300 transition">{client.name}</h3>
                     </div>
                     <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -165,7 +165,7 @@ export default function AgencyMasterDashboard() {
               ))}
             </div>
 
-            {/* Selected Client Detail Panel */}
+            {/* Selected Client Inspection Drawer */}
             {selectedClient && (
               <div className="p-8 rounded-3xl bg-gradient-to-br from-[#0a0f1d] via-[#0a0f1d] to-blue-950/30 border border-blue-500/50 shadow-2xl relative overflow-hidden animate-fadeIn">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -215,7 +215,7 @@ export default function AgencyMasterDashboard() {
         )}
 
         {activeTab === 'estimator' && (
-          <div className="max-w-5xl mx-auto space-y-8 animate-fadeIn">
+          <div className="max-w-5xl mx-auto space-y-8">
             <div>
               <h2 className="text-3xl font-black tracking-tight text-white">Embeddable Quoting & Estimator Engine</h2>
               <p className="text-sm text-slate-400 mt-1">High-converting dynamic pricing estimator deployed for niche trade contractors.</p>
@@ -305,7 +305,7 @@ export default function AgencyMasterDashboard() {
         )}
 
         {activeTab === 'schemas' && (
-          <div className="max-w-4xl mx-auto space-y-8 animate-fadeIn">
+          <div className="max-w-4xl mx-auto space-y-8">
             <div>
               <h2 className="text-3xl font-black tracking-tight text-white">Zero-Overlap Database Architecture</h2>
               <p className="text-sm text-slate-400 mt-1">Isolated PostgreSQL schemas per contractor tenant guaranteeing absolute security.</p>
@@ -325,7 +325,7 @@ export default function AgencyMasterDashboard() {
                 </div>
                 <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 shadow-lg">
                   <div className="text-2xl mb-3">??</div>
-                  <h3 className="text-2xl font-bold text-white mb-1">Stripe Automations</h3>
+                  <h3 className="text-base font-bold text-white mb-1">Stripe Automations</h3>
                   <p className="text-xs text-slate-400 leading-relaxed">Successful invoice payments trigger automated tenant account provisioning instantly.</p>
                 </div>
               </div>
